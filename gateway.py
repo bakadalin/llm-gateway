@@ -13,6 +13,11 @@ from pypdf import PdfReader
 from docx import Document
 from openpyxl import load_workbook
 
+from detection_client import check as check_detection
+from event_adapter import extract_checkable_text
+
+DETECTION_BASE_URL = "http://10.0.3.168:8000"
+
 
 # ============================================================
 # Gateway 설정
@@ -816,3 +821,14 @@ def request(
     send_to_next_module(
         event
     )
+
+    normalized_text = extract_checkable_text(event)
+    if normalized_text:
+        result = check_detection(
+            DETECTION_BASE_URL,
+            request_id=event["request_id"],
+            normalized_text=normalized_text,
+            source={"service": event.get("service")},
+        )
+        print("\n===== DETECTION RESULT =====")
+        print(result)
